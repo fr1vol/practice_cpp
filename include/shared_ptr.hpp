@@ -106,7 +106,7 @@ namespace ez
         using pointer = T*;    
         using element_type = T;
 
-        constexpr shared_ptr() noexcept :prt(nullptr),control_block(nullptr){}
+        constexpr shared_ptr() noexcept :ptr(nullptr),control_block(nullptr){}
         constexpr shared_ptr(std::nullptr_t) noexcept :shared_ptr(){}
 
         template<typename U>
@@ -118,7 +118,7 @@ namespace ez
     private:
 
         template<typename U>
-        friend shared_ptr;
+        friend class shared_ptr;
 
         template<typename U>
         void copy_construct_from(const shared_ptr<U>& other){
@@ -192,6 +192,13 @@ namespace ez
 
         explicit operator bool() const noexcept{
             return ptr != nullptr;
+        }
+
+        void reset(){
+            shared_ptr().swap(*this);
+        }
+        void reset(std::nullptr_t){
+            reset();
         }
 
         template<typename U>

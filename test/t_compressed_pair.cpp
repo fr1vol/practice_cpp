@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-TEST_CASE( "test class","[compressed_pair]")
+TEST_CASE( "test compressed_pair class","[compressed_pair]")
 {
     SECTION("init with empty class"){
         struct empty_class {};

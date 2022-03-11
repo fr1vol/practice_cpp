@@ -2,7 +2,7 @@
 #include <LRU.hpp>
 #include <iostream>
 
-TEST_CASE("test LRU cache class","[LRU_cache]"){
+TEST_CASE("test LRU cache with single linked list","[LRU_cache]"){
 
     SECTION("default construct"){
 
@@ -11,7 +11,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cache.m_map.empty());
         REQUIRE(cache.pre_first == &(cache.m_tail));
         REQUIRE(cache.m_tail.next == nullptr);
-        cache.print();
+
     }
 
     SECTION("test put function"){
@@ -24,7 +24,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 2);
         REQUIRE(cur_node->val == 3);
         REQUIRE(cache.m_map[2] == cache.pre_first);
-        cache.print();
+
 
 
         cache.put(2,4);
@@ -34,7 +34,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 2);
         REQUIRE(cur_node->val == 4);
         REQUIRE(cache.m_map[2] == cache.pre_first);
-        cache.print();
+
 
         cache.put(3,12);
         REQUIRE(cache.m_map.size() == 2);
@@ -43,7 +43,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 3);
         REQUIRE(cur_node->val == 12);
         REQUIRE(cache.m_map[3] == cache.pre_first);
-        cache.print();
+
 
         cache.put(4,7);
         REQUIRE(cache.m_map.size() == 3);
@@ -52,7 +52,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 4);
         REQUIRE(cur_node->val == 7);
         REQUIRE(cache.m_map[4] == cache.pre_first);
-        cache.print();
+
 
         cache.put(4,3);
         REQUIRE(cache.m_map.size() == 3);
@@ -61,7 +61,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 4);
         REQUIRE(cur_node->val == 3);
         REQUIRE(cache.m_map[4] == cache.pre_first);
-        cache.print();
+
 
     }
 
@@ -79,7 +79,7 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 2);
         REQUIRE(cur_node->val == 3);
         REQUIRE(cache.m_map[2] == cache.pre_first);
-        cache.print();
+
 
         
         int val2 = cache.get(2);
@@ -89,7 +89,6 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 2);
         REQUIRE(cur_node->val == 3);
         REQUIRE(cache.m_map[2] == cache.pre_first);
-        cache.print();
 
         int val3 = cache.get(-1);
         REQUIRE(val3 == -1);
@@ -101,17 +100,8 @@ TEST_CASE("test LRU cache class","[LRU_cache]"){
         REQUIRE(cur_node->key == 3);
         REQUIRE(cur_node->val == 12);
         REQUIRE(cache.m_map[3] == cache.pre_first);
-        cache.print();
 
     }
 
-    SECTION("test"){
-        ez::LRU_cache cache(3);
-        cache.put(1,1);
-        cache.put(2,2);
-        cache.put(3,3);
-        cache.print();
-        cache.get(2);
-        cache.print();
-    }
 }
+

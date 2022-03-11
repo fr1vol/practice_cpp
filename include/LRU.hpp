@@ -26,37 +26,24 @@ namespace ez
         int m_capacity;
         std::unordered_map<int,node*> m_map;
 
-        void print(){
-            auto cur = m_tail.next;
-            while(cur != nullptr){
-                std::cout<<"("<<cur->key<<","<<cur->val<<","<<m_map[cur->key]->key<< ")->";
-                cur=cur->next;
-            }
-            std::cout<<"nullptr \n first_node :";
-            if(pre_first->next == nullptr){
-                std::cout<<"nullptr \n\n";
-            }else{
-                cur = pre_first->next;
-                std::cout<<"("<<cur->key<<","<<cur->val<<") \n\n";
-            }
-
-        }
     public:
         explicit LRU_cache(int cap):m_tail(0,0),m_free(0,0),pre_first(&m_tail),m_capacity(cap),m_map(){
             add_free_node(cap);
         }
 
         ~LRU_cache(){
-            destroy_list(m_tail.next);
-            destroy_list(m_free.next);
+            destroy_list(m_tail);
+            destroy_list(m_free);
         }
 
-        void destroy_list(node* head){
+        void destroy_list(node& list){
+            auto head = list.next;
             while(head != nullptr){
                 auto next = head->next;
                 delete head;
                 head = next;
             }
+            list.next = nullptr;
         }
 
         void add_free_node(int size){
@@ -68,7 +55,7 @@ namespace ez
         }
         bool has_free_node() const{
             return m_free.next != nullptr;
-        }
+        }  
 
         node* get_free_node()
         {
@@ -103,7 +90,6 @@ namespace ez
                 auto pre = it->second;
                 auto cur = release_node(pre);
                 move_to_first(cur);
-                m_map.emplace(key,pre_first);
                 return cur->val;
             }
             return -1;
@@ -118,7 +104,6 @@ namespace ez
                 auto cur = release_node(pre);
                 move_to_first(cur);
                 cur->val = val;
-                m_map.emplace(key,pre_first);
            }else{
                node* n = nullptr;
                if(has_free_node()){
@@ -129,7 +114,6 @@ namespace ez
                n->key = key;
                n->val = val;
                move_to_first(n);
-               m_map.emplace(key,pre_first);
            }
         }
 
@@ -142,6 +126,8 @@ namespace ez
                 first_node->next = cur;
                 pre_first = first_node;
             }
+            
+            m_map.emplace(cur->key,pre_first);
         }
 
     };
@@ -154,119 +140,100 @@ namespace ez
     //双向链表
     class  LRU_cache
     {
-    
-    struct Node     //双向链表
-    {
-        Node(int val_,int key_):val(val_),key(key_),next(nullptr),pre(nullptr){}
-        Node():Node(0,0){}
-        int val;
-        int key;
-        Node* next;
-        Node* pre;
-    };
+        struct node
+        {
+            node() =default;
+            node(int k,int v):key(k),val(v){}
 
-    std::unordered_map<int,Node*> m;   //查找
-    Node head;  //双向链表头部
-    Node tail;  //双向链表尾部
-    int capacity;   //指示数量
-
-
-    void add_free_node(int size){  //向尾部添加free_node
-        auto cur = &tail;
-        for(int i =0 ; i < size; ++i){
-            cur->next = new Node(0,0);
-            cur = cur->next;
-        }
-    }
-
-    void insert_head(Node* node){   //将节点插入到开头
-        assert(node != nullptr);
-        auto old_first = head.next;
-        head.next = node;
-        node->next = old_first;
-        node->pre = &head;
-        old_first->pre = node;
-    }
-
-    void release_node(Node* node){  //将指定node节点提取出来
-        assert(node != nullptr && node != &head &&  node != &tail);
-        auto pre_node = node->pre;
-        auto next_node = node->next;
-        pre_node->next = next_node;
-        next_node->pre = pre_node;
-        node->pre  = nullptr;
-        node->next = nullptr;
-    }
-
-    Node* get_last()        //获取最后一个node
-    {
-        assert(tail.pre != &head);
-        auto n = tail.pre;
-        release_node(n);
-        return n;
-    }
-    Node* get_free()  //获取一个free node
-    {
-        assert(tail.next != nullptr);
-        auto n =tail.next;
-        tail.next = n->next;
-        n->next = nullptr;
-        return n;
-    }
-public:
-    LRU_cache(int cap):m(),head(),tail(),capacity(cap) {   //构造函数添加free node
-        head.next = &tail;
-        tail.pre = &head;
-        add_free_node(cap);
-    }
-    
-    ~LRU_cache()     //析构函数释放管理的节点
-    {
-        auto n = head.next;
-        while(n != &tail){
-            auto next_node = n->next;
-            delete n;
-            n = next_node;
-        }
-
-        n = tail.next;
-        while(n != nullptr){
-            auto next_node = n->next;
-            delete n;
-            n = next_node;
-        }
-    }
-    int get(int key) {
-        if(auto it = m.find(key); it == m.end()){  //不存在节点
-            return -1;
-        }else{      
-            auto node = it->second;     //存在，需要将node提前
-            release_node(node);
-            insert_head(node);
-            return node->val;
-        }
-    }
-    
-    void put(int key, int value) {
-        if(auto it = m.find(key); it == m.end()){   //不存在该node
-            Node* node = nullptr;
-            if(tail.next == nullptr){   //是否有free node，没有的化，将最后一个node拿来使用
-                node = get_last();
-                m.erase(node->key);
-            }else{                  //获取free node
-                node = get_free();  
+            void reset_prev_next(){
+                prev = nullptr;
+                next = nullptr;
             }
-            node->key = key;
-            node->val = value;
-            m.emplace(key,node);
-            insert_head(node);
-        }else{                  //已存在node，更新并提前
-            auto n = it->second;
-            n->val = value;
+
+            void set(int k,int v){
+                key = k;
+                val= v;
+            }
+
+            int key{0};
+            int val{0};
+            node* prev{nullptr};
+            node* next{nullptr};
+        };
+
+        std::unordered_map<int,node*> m;
+        node head;
+        int capacity;
+
+        node* get_last_node(){
+            auto n = head.prev;
+            assert(n != &head);
             release_node(n);
-            insert_head(n);
+            m.erase(n->key);
+            return n;
         }
-    }
+
+        void release_node(node* n){
+            auto pre = n->prev;
+            auto next = n->next;
+            pre->next = next;
+            next->prev = pre;
+            n->reset_prev_next();
+        }
+
+        node* get_new_node(){
+            auto n = new node();
+            ++head.val;
+            return n;
+        }
+
+        void move_to_first(node* n)
+        {
+            auto next = head.next;
+            head.next = n;
+            n->next = next;
+            n->prev = &head;
+            next->prev = n;
+        }
+
+    public:
+        LRU_cache(int cap):m(),head(),capacity(cap){
+            head.next = &head;
+            head.prev = &head;
+        }
+
+        void set(int key, int value){
+            auto it = m.find(key);
+            if(it != m.end()){
+                auto n = it->second;
+                n->val = value;
+                release_node(n);
+                move_to_first(n);
+            }else{
+                node* n = nullptr;
+                if(head.val < capacity){
+                    n = get_new_node();
+                }else{
+                    n = get_last_node();
+                }
+                n->set(key,value);
+                move_to_first(n);        
+                m[key] = n;
+            }
+        }
+
+        int get(int key){
+            auto it = m.find(key);
+            if(it == m.end()){
+                return -1;
+            }else{
+                auto n = it->second;
+                release_node(n);
+                move_to_first(n);
+                return n->val;
+            }
+        }
+        
     };
 
     } // namespace v2

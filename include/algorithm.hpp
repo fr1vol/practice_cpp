@@ -4,6 +4,9 @@
 #define EZ_ALGORITHM_HPP
 
 #include <iterator>
+#include <stack>
+#include <utility>
+#include <cassert>
 namespace ez
 {
     template<typename Iter>
@@ -83,6 +86,56 @@ namespace ez
         return first;
     }
 
+    // 快速排序
+    template<typename Iter>
+    Iter quick_select(Iter first, Iter last){
+        assert(last - first > 1);
+        auto random_iterator = first + rand()%(last - first);
+        std::iter_swap(first,random_iterator);
+        auto key = *first;
+        --last;
+
+        while(first < last){
+            while(first < last && *last >= key){
+                --last;
+            }
+            std::iter_swap(last,first);
+            while(first < last && *first <= key){
+                ++first;
+            }
+            std::iter_swap(last,first);
+        }
+        return first;
+    }
+
+
+    template<typename Iter>
+    void quick_sort(Iter first,Iter last){
+        if(last - first > 1){
+            auto it = quick_select(first,last);
+            quick_sort(first,it);
+            quick_sort(it+1,last);
+        }
+    }
+
+    template<typename Iter>
+    void quick_sort_v2(Iter first,Iter last){
+        std::stack<std::pair<Iter,Iter>> s;
+        if(last - first > 1){
+            s.push({first,last});
+        }
+        while(!s.empty()){
+            auto [l,r] = s.top();
+            s.pop();
+            auto it = quick_select(l,r);
+            if(it - l > 1){
+                s.push({l,it});
+            }
+            if(r - (it+1) > 1){
+                s.push({it+1,r});
+            }
+        }
+    }
 
 
 } // namespace ez
